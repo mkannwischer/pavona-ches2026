@@ -2019,6 +2019,38 @@ class BNTRN(ACCInsn):
         state.wdrs.get_reg(self.wrd).write_unsigned(result)
 
 
+# TODO (Assignment 2): model bn.rotv.
+# Uncomment the class below once bn.rotv is in bignum-insns.yml (the class
+# looks up its encoding there when this file is loaded), add BNROTV to
+# INSN_CLASSES, and implement execute(). BNSHV and BNTRN above show how to
+# split a WDR into elements with extract_sub_word() and put them back together.
+#
+# class BNROTV(ACCInsn):
+#     insn = insn_for_mnemonic('bn.rotv', 4)
+#
+#     def __init__(self, raw: int, op_vals: Dict[str, int]):
+#         super().__init__(raw, op_vals)
+#         self.wrd = op_vals['wrd']
+#         self.wrs1 = op_vals['wrs1']
+#         self.rot_bits = op_vals['rot_bits']
+#         self.type = op_vals['type']
+#
+#     def execute(self, state: ACCState) -> None:
+#         if not state.EN_PQC:
+#             state.stop_at_end_of_cycle(ErrBits.ILLEGAL_INSN)
+#             return None
+#
+#         # TODO: raise ILLEGAL_INSN if rot_bits is not smaller than the
+#         # element width, the same way as above.
+#
+#         a = state.wdrs.get_reg(self.wrs1).read_unsigned()
+#
+#         # TODO: rotate each element of a right by rot_bits.
+#         result = a
+#
+#         state.wdrs.get_reg(self.wrd).write_unsigned(result)
+
+
 INSN_CLASSES = [
     ADD, ADDI, LUI, SUB, SLL, SLLI, SRL, SRLI, SRA, SRAI,
     AND, ANDI, OR, ORI, XOR, XORI,
@@ -2039,6 +2071,6 @@ INSN_CLASSES = [
     BNCMP, BNCMPB,
     BNLID, BNSID,
     BNLD, BNSD,
-    BNMOV, BNMOVR, BNTRN,
+    BNMOV, BNMOVR, BNTRN,  # TODO (Assignment 2): add BNROTV
     BNWSRR, BNWSRW
 ]

@@ -121,6 +121,51 @@ filegroup(
     output_group = "binary",
 )
 
+# PQC Verilator models: "" without bn.rotv, _v1 with bnrotv_v1.
+MODE = {
+    "": [],
+    "_v1": ["--flag", "bnrotv"],
+}
+
+[
+    fusesoc_build(
+        name = "verilator_real_pqc" + version,
+        srcs = [
+            ":dpi_files",
+            ":dv_common_files",
+            ":rtl_files",
+            ":verilator_files",
+        ],
+        cores = [
+            ":cores",
+        ],
+        data = ["//hw/ip/acc:rtl_files"],
+        flags = [
+            "--AccPQCEn=1",
+        ],
+        make_options = ":make_options",
+        output_groups = pavona_select_top_attr("top_verilator_binary"),
+        pre_system_flags = flags,
+        systems = pavona_select_top_attr("top_verilator_core"),
+        tags = [
+            "manual",
+            "verilator",
+        ],
+        target = "sim",
+        verilator_options = ":verilator_options",
+    )
+    for version, flags in MODE.items()
+]
+
+[
+    filegroup(
+        name = "verilator_bin_pqc" + version,
+        srcs = [":verilator_real_pqc" + version],
+        output_group = "binary",
+    )
+    for version in MODE.keys()
+]
+
 # This is used in CI steps that do not want to run Verilator tests, and thus
 # do not want to build the Verilated model. This causes the //hw:verilator
 # target to not emit any files, which will break any tests that rely on this;
@@ -152,6 +197,19 @@ alias(
     tags = ["verilator"],
     visibility = ["//visibility:public"],
 )
+
+[
+    alias(
+        name = "verilator_pqc" + version,
+        actual = select({
+            ":disable_verilator_build": ":verilator_stub",
+            "//conditions:default": ":verilator_bin_pqc" + version,
+        }),
+        tags = ["verilator"],
+        visibility = ["//visibility:public"],
+    )
+    for version in MODE.keys()
+]
 
 genrule(
     name = "fusesoc_ignore",

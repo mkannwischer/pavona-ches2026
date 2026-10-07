@@ -70,6 +70,9 @@ parameters:
   AST_BYPASS_CLK:
     datatype: bool
     paramtype: vlogdefine
+  BNROTV:
+    datatype: bool
+    paramtype: vlogdefine
 
 targets:
   default: &default_target
@@ -92,6 +95,7 @@ targets:
       - OtpMacroMemInitFile
       - AccPQCEn
       - AST_BYPASS_CLK=true
+      - bnrotv ? (BNROTV=true)
     tools:
       vivado:
         part: "xcku095-ffva1156-1-c" # CW341 with KU095

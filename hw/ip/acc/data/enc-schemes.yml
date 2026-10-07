@@ -302,6 +302,26 @@ bntrn:
       value: bxxxx
     type: 27-25  # trn1 or trn1 and .2Q, .4D, .8S or .16H
 
+# TODO (Assignment 2): add the encoding scheme for bn.rotv.
+# Uncomment the skeleton below and fill in the bit ranges; see ASSIGNMENT-2.md
+# for the encoding. bn.rotv shares custom6 with bn.trn above, but has a single
+# source register (wdr2 instead of wdr3) and is selected by funct2. rot_bits is
+# split across two bit ranges like the imm field of bnr (bn.rshi) below. Bits
+# that no operand uses go into a "fixed" field, whose value has one 0, 1 or x
+# per bit.
+#
+# bnrotv:
+#   parents:
+#     - custom6
+#     - wdr2
+#     - funct2
+#   fields:
+#     rot_bits: TODO
+#     type: TODO
+#     fixed:
+#       bits: TODO
+#       value: TODO
+
 
 # Used for the wide reg/reg ALU instructions.
 bnaf:

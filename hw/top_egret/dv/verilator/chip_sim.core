@@ -68,6 +68,11 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     description: Disconnect the TL data output of rv_core_ibex so that we can attach the simulation SRAM.
+  AccPQCEn:
+    datatype: int
+    description: Enable the PQC vector ISA extension in the ACC
+    default: 0
+    paramtype: vlogparam
 
 targets:
   default: &default_target
@@ -85,6 +90,7 @@ targets:
       - otpinit
       - DMIDirectTAP
       - RV_CORE_IBEX_SIM_SRAM=true
+      - AccPQCEn
     default_tool: verilator
     filesets:
       - files_sim_verilator
@@ -102,6 +108,7 @@ targets:
           - '--trace-params'
           - '--trace-max-array 1024'
           - '--unroll-count 512'
+          - 'bnrotv ? (-DBNROTV)'
           # TODO: Variable expansion depends on edalize internals. Find better solution.
           #       (Applies to LDFLAGS expansion below as well)
           - '-CFLAGS "$(CFLAGS_FOR_BUILD) -std=c++17 -Wall -DVM_TRACE_FMT_FST -DVL_USER_STOP -DTOPLEVEL_NAME=chip_sim_tb"'

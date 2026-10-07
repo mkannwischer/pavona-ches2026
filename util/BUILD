@@ -170,6 +170,14 @@ py_binary(
     deps = all_requirements,
 )
 
+py_binary(
+    name = "gen_synth",
+    srcs = ["gen_synth.py"],
+    args = ["--fusesoc=$(rootpath :fusesoc_build)"],
+    data = [":fusesoc_build"],
+    deps = [requirement("tabulate")],
+)
+
 py_library(
     name = "autogen_banner",
     srcs = ["autogen_banner.py"],

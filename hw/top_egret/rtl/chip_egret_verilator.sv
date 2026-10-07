@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module chip_egret_verilator (
+module chip_egret_verilator #(
+  // parameter to enable ACC's PQC vector extension
+  parameter bit AccPQCEn = 0
+) (
   // Clock and Reset
   input clk_i,
   input rst_ni,
@@ -494,6 +497,7 @@ module chip_egret_verilator (
   assign por_n = {ast_pwst.main_pok, ast_pwst.aon_pok};
 
   top_egret #(
+    .AccAccPQCEn(AccPQCEn),
     .PinmuxAonTargetCfg(PinmuxTargetCfg),
     .SecAesAllowForcingMasks(1'b1),
     .SramCtrlMainInstrExec(1),

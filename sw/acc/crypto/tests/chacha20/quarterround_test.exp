@@ -1,0 +1,8 @@
+# Copyright zeroRISC Inc & MPI-SP.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+w0 = 0xea2a92f4ea2a92f4ea2a92f4ea2a92f4ea2a92f4ea2a92f4ea2a92f4ea2a92f4
+w1 = 0xcb1cf8cecb1cf8cecb1cf8cecb1cf8cecb1cf8cecb1cf8cecb1cf8cecb1cf8ce
+w2 = 0x4581472e4581472e4581472e4581472e4581472e4581472e4581472e4581472e
+w3 = 0x5881c4bb5881c4bb5881c4bb5881c4bb5881c4bb5881c4bb5881c4bb5881c4bb

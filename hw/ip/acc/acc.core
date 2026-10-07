@@ -43,6 +43,7 @@ filesets:
       - rtl/bn_vec_core/unified_mul.sv
       - rtl/bn_vec_core/acc_bignum_mul.sv
       - rtl/bn_vec_core/buffer_bit.sv
+      - bnrotv ? (rtl/bn_vec_core/bnrotv_v1.sv)
       - rtl/acc_loop_controller.sv
       - rtl/acc_stack.sv
       - rtl/acc_rnd.sv
@@ -86,8 +87,26 @@ filesets:
       - lint/acc.waiver
     file_type: waiver
 
+  files_sta:
+    files:
+      - rounding.tcl:
+          copyto: rounding.tcl
+          is_include_file: true
+      - timing.tcl:
+          copyto: timing.tcl
+          is_include_file: true
+      - vivado.tcl:
+          copyto: vivado.tcl
+          is_include_file: true
+
 parameters:
   SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+  SYNTHESIS_MEMORY_BLACK_BOXING:
+    datatype: bool
+    paramtype: vlogdefine
+  BNROTV:
     datatype: bool
     paramtype: vlogdefine
 
@@ -128,3 +147,17 @@ targets:
     default_tool: icarus
     parameters:
       - SYNTHESIS=true
+
+  sta:
+    <<: *default_target
+    default_tool: vivado
+    parameters:
+      - SYNTHESIS=true
+      - SYNTHESIS_MEMORY_BLACK_BOXING=true
+      - bnrotv ? (BNROTV=true)
+    filesets_append:
+      - files_sta
+    toplevel: acc
+    tools:
+      vivado:
+        part: "xc7k160tfbg676-1" # CW310 with K410T

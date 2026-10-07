@@ -299,6 +299,28 @@ fpga_cw340(
     """,
 )
 
+# PQC with bn.rotv: _v1 uses bnrotv_v1.
+[
+    fpga_cw340(
+        name = "fpga_cw340_pqc{}_test_rom".format(version),
+        testonly = True,
+        base = ":fpga_cw340",
+        base_bitstream = "//hw/bitstream/cw340_pqc:bitstream" + version,
+        exec_env = "fpga_cw340_pqc{}_test_rom".format(version),
+        mmi = "//hw/bitstream/cw340_pqc:mmi" + version,
+        otp = "//hw/top_egret/data/otp:img_rma",
+        rom = "//sw/device/lib/testing/test_rom:test_rom",
+        test_cmd = """
+            --exec="transport init"
+            --exec="fpga load-bitstream {bitstream}"
+            --exec="bootstrap --clear-uart=true {firmware}"
+            --exec="console --non-interactive --exit-success='{exit_success}' --exit-failure='{exit_failure}'"
+            no-op
+        """,
+    )
+    for version in ["_v1"]
+]
+
 fpga_cw340(
     name = "fpga_cw340_rom_with_fake_keys",
     testonly = True,
@@ -523,6 +545,39 @@ sim_verilator(
     manifest = "//sw/device/silicon_creator/rom_ext:manifest",
     rom = "//sw/device/silicon_creator/rom:rom_sim_verilator",
 )
+
+# PQC: "" without bn.rotv, _v1 with bnrotv_v1 (see //hw:verilator_pqc*).
+[
+    sim_verilator(
+        name = "sim_verilator_pqc" + version,
+        testonly = True,
+        args = [
+            "--rcfile=",
+            "--logging=info",
+            "--interface=verilator",
+            "--verilator-bin=$(rootpath //hw:verilator_pqc{})".format(version),
+            "--verilator-rom={rom}",
+            "--verilator-otp={otp}",
+            "--verilator-flash={firmware}",
+        ],
+        base = ":sim_verilator_base",
+        data = [
+            "//hw:fusesoc_ignore",
+            "//hw:verilator_pqc" + version,
+        ],
+        exec_env = "sim_verilator",
+        param = {
+            "exit_success": DEFAULT_TEST_SUCCESS_MSG,
+            "exit_failure": DEFAULT_TEST_FAILURE_MSG,
+        },
+        rom = "//sw/device/lib/testing/test_rom:test_rom",
+        test_cmd = """
+            --exec="console --non-interactive --exit-success='{exit_success}' --exit-failure='{exit_failure}'"
+            no-op
+        """,
+    )
+    for version in ["", "_v1"]
+]
 
 ###########################################################################
 # Sim DV Environments

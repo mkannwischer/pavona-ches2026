@@ -28,3 +28,31 @@ filegroup(
     }),
     tags = ["manual"],
 )
+
+# PQC bitstream with bn.rotv: _v1 (bnrotv_v1). There is no cached bitstream for it, so it is
+# always built locally with Vivado (unless bitstream=skip).
+[
+    filegroup(
+        name = "bitstream" + version,
+        testonly = True,
+        srcs = select({
+            "//hw/bitstream:bitstream_skip": ["//hw/bitstream/universal:none"],
+            "//conditions:default": ["//hw/bitstream/vivado:fpga_cw340_pqc{}_test_rom".format(version)],
+        }),
+        tags = ["manual"],
+    )
+    for version in ["_v1"]
+]
+
+[
+    filegroup(
+        name = "mmi" + version,
+        testonly = True,
+        srcs = select({
+            "//hw/bitstream:bitstream_skip": ["//hw/bitstream/universal:none"],
+            "//conditions:default": ["//hw/bitstream/vivado:cw340_pqc{}_mmi".format(version)],
+        }),
+        tags = ["manual"],
+    )
+    for version in ["_v1"]
+]

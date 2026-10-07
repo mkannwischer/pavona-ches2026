@@ -3176,6 +3176,24 @@ pavona_test(
 )
 
 pavona_test(
+    name = "acc_rotv_test",
+    srcs = ["acc_rotv_test.c"],
+    exec_env = {
+        "//hw/top_egret:sim_verilator_pqc_v1": None,
+        "//hw/top_egret:fpga_cw340_pqc_v1_test_rom": None,
+    },
+    verilator = verilator_params(timeout = "long"),
+    deps = [
+        "//hw/ip/acc/dv/smoke_rotv:smoke_test",
+        "//hw/top/dt",
+        "//sw/device/lib/dif:acc",
+        "//sw/device/lib/testing:acc_testutils",
+        "//sw/device/lib/testing:entropy_testutils",
+        "//sw/device/lib/testing/test_framework:ottf_main",
+    ],
+)
+
+pavona_test(
     name = "otp_ctrl_mem_access_test",
     srcs = ["otp_ctrl_mem_access_test.c"],
     exec_env = {

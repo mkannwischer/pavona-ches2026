@@ -282,7 +282,9 @@ package acc_pkg;
 
     AluOpBignumShv,
     AluOpBignumTrn,
-
+`ifdef BNROTV
+    AluOpBignumRotv,
+`endif
     AluOpBignumNone
   } alu_op_bignum_e;
 
@@ -482,6 +484,16 @@ package acc_pkg;
     trn2_4d,
     trn2_2q
   } alu_trn_type_t;
+
+`ifdef BNROTV
+  // bn.rotv reuses the vector_type field to select the element width.
+  typedef enum logic[1:0] {
+    rotv_16h,
+    rotv_8s,
+    rotv_4d,
+    rotv_2q
+  } alu_rotv_type_t;
+`endif
 
   // Required for BNMULV adders.
   typedef enum logic [1:0] {

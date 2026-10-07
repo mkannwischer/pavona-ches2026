@@ -261,6 +261,48 @@
       wrd: wrd
       type: type
 
+# TODO (Assignment 2): add bn.rotv.
+# Uncomment the skeleton below and fill in the TODOs. bn.trn above and bn.shv
+# are good examples. The operand types are described in the comments of
+# hw/ip/acc/data/insns.yml; rot_bits needs an unsigned immediate wide enough
+# for 0 to 127, and type an enum of the four element widths.
+#
+# - mnemonic: bn.rotv
+#   synopsis: Vector rotate
+#   pqc: true
+#   operands:
+#     - name: wrd
+#       doc: Destination WDR
+#       type: wrb
+#     - name: wrs1
+#       doc: Source WDR
+#       type: wrs
+#     - name: rot_bits
+#       doc: Number of bits by which to rotate each element of `<wrs1>`.
+#       type: TODO
+#     - name: type
+#       abbrev: t
+#       doc: Selects the element width.
+#       type: TODO
+#   glued-ops: true
+#   doc: |
+#     Rotates each element of `<wrs1>` right by `<rot_bits>` bits and writes
+#     the result to `<wrd>`. Bits do not cross element boundaries.
+#
+#     Flags are not used or saved.
+#   syntax: |
+#     <type> <wrd>, <wrs1>, <rot_bits>
+#   errs:
+#     - An `ILLEGAL_INSN` error if `<rot_bits>` is not smaller than the element
+#       width selected by `<type>`.
+#   iflow:
+#     - to: [wrd]
+#       from: [wrs1]
+#   encoding:
+#     scheme: bnrotv
+#     mapping:
+#       TODO: map each encoding field to an operand or a constant
+
 - mnemonic: bn.mulqacc
   synopsis: Quarter-word Multiply and Accumulate
   operands:

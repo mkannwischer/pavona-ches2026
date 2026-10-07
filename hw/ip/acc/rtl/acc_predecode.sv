@@ -152,6 +152,24 @@ module acc_predecode
 
   assign shift_amt_v_type_bignum = {3'b0, imem_rdata_i[29:25]};
 
+`ifdef BNROTV
+  // BN.ROTV rotates within an element, so an amount of at least the element
+  // width is meaningless. The rotate amount is shift_amt_s_type_bignum, i.e.
+  // {imem_rdata_i[31:25], imem_rdata_i[14]}, type is imem_rdata_i[24:23].
+  // This mirrors acc_decoder.sv's rotv_insn_illegal_pqc exactly, so the two
+  // stay in lockstep for the CTRL.REDUN check.
+  logic rotv_insn_illegal;
+  always_comb begin
+    unique case (imem_rdata_i[24:23])
+      2'b00:   rotv_insn_illegal = |imem_rdata_i[31:28];  // .16H, amount < 16
+      2'b01:   rotv_insn_illegal = |imem_rdata_i[31:29];  // .8S,  amount < 32
+      2'b10:   rotv_insn_illegal = |imem_rdata_i[31:30];  // .4D,  amount < 64
+      2'b11:   rotv_insn_illegal =  imem_rdata_i[31];     // .2Q,  amount < 128
+      default: rotv_insn_illegal = 1'b0;
+    endcase
+  end
+`endif
+
   always_comb begin
     rf_ren_a_base   = 1'b0;
     rf_ren_b_base   = 1'b0;
@@ -559,15 +577,32 @@ module acc_predecode
         end
 
         ////////////////////////////////////////////
-        //                 BN.TRN                 //
+        //            BN.TRN/BN.ROTV              //
         ////////////////////////////////////////////
 
         InsnOpcodeBignumTrn: begin
           if (AccPQCEn) begin
-            rf_ren_a_bignum          = 1'b1;
-            rf_ren_b_bignum          = 1'b1;
-            rf_we_bignum             = 1'b1;
-            alu_bignum_trn_type_pqc  = alu_trn_type_t'(imem_rdata_i[27:25]);
+`ifdef BNROTV
+            unique case (imem_rdata_i[14:12])
+              3'b010: begin  // BN.TRN
+`endif
+                rf_ren_a_bignum         = 1'b1;
+                rf_ren_b_bignum         = 1'b1;
+                rf_we_bignum            = 1'b1;
+                alu_bignum_trn_type_pqc = alu_trn_type_t'(imem_rdata_i[27:25]);
+`ifdef BNROTV
+              end
+              3'b011, 3'b111: begin  // BN.ROTV
+                if (!rotv_insn_illegal) begin
+                  rf_ren_a_bignum            = 1'b1;
+                  rf_we_bignum               = 1'b1;
+                  alu_bignum_vector_type_pqc = alu_vector_type_t'(imem_rdata_i[24:23]);
+                  alu_bignum_shift_amt       = shift_amt_s_type_bignum;
+                end
+              end
+              default: ;
+            endcase
+`endif
           end
         end
 

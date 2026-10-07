@@ -180,6 +180,22 @@ module acc_decoder
   logic [$clog2(WLEN)-1:0] shift_amt_v_type_bignum_pqc;
   assign shift_amt_v_type_bignum_pqc = {3'b0, insn[29:25]};
 
+`ifdef BNROTV
+  // BN.ROTV rotates within an element, so an amount of at least the element
+  // width is meaningless. The rotate amount is shift_amt_s_type_bignum, i.e.
+  // {insn[31:25], insn[14]}, type is insn[24:23].
+  logic rotv_insn_illegal_pqc;
+  always_comb begin
+    unique case (insn[24:23])
+      2'b00:   rotv_insn_illegal_pqc = |insn[31:28];  // .16H, amount < 16
+      2'b01:   rotv_insn_illegal_pqc = |insn[31:29];  // .8S,  amount < 32
+      2'b10:   rotv_insn_illegal_pqc = |insn[31:30];  // .4D,  amount < 64
+      2'b11:   rotv_insn_illegal_pqc =  insn[31];     // .2Q,  amount < 128
+      default: rotv_insn_illegal_pqc = 1'b0;
+    endcase
+  end
+`endif
+
   assign mac_sel_pqc       = insn[27];
   assign mac_lane_mode_pqc = insn[25];
   assign mac_exec_mode_pqc = insn[31:30];
@@ -818,16 +834,36 @@ module acc_decoder
       end
 
       ////////////////////////////////////////////
-      //                 BN.TRN                 //
+      //            BN.TRN/BN.ROTV              //
       ////////////////////////////////////////////
 
       InsnOpcodeBignumTrn: begin
         if (AccPQCEn) begin
-          insn_subset         = InsnSubsetBignum;
-          rf_ren_a_bignum     = 1'b1;
-          rf_ren_b_bignum     = 1'b1;
-          rf_wdata_sel_bignum = RfWdSelEx;
-          rf_we_bignum        = 1'b1;
+`ifdef BNROTV
+          unique case (insn_alu[14:12])
+            3'b010: begin  // BN.TRN
+`endif
+              insn_subset         = InsnSubsetBignum;
+              rf_ren_a_bignum     = 1'b1;
+              rf_ren_b_bignum     = 1'b1;
+              rf_wdata_sel_bignum = RfWdSelEx;
+              rf_we_bignum        = 1'b1;
+`ifdef BNROTV
+            end
+            3'b011, 3'b111: begin  // BN.ROTV
+              if (!rotv_insn_illegal_pqc) begin
+                insn_subset                = InsnSubsetBignum;
+                rf_ren_a_bignum            = 1'b1;
+                rf_wdata_sel_bignum        = RfWdSelEx;
+                rf_we_bignum               = 1'b1;
+                alu_vector_type_bignum_pqc = alu_vector_type_t'(insn_alu[24:23]);
+              end else begin
+                illegal_insn = 1'b1;
+              end
+            end
+            default: illegal_insn = 1'b1;
+          endcase
+`endif
         end else begin
           illegal_insn = 1'b1;
         end
@@ -1138,13 +1174,26 @@ module acc_decoder
       end
 
       ////////////////////////////////////////////
-      //                 BN.TRN                 //
+      //            BN.TRN/BN.ROTV              //
       ////////////////////////////////////////////
 
       InsnOpcodeBignumTrn: begin
         if (AccPQCEn) begin
-          alu_op_b_mux_sel_bignum  = OpBSelRegister;
-          alu_operator_bignum      = AluOpBignumTrn;
+`ifdef BNROTV
+          unique case (insn_alu[14:12])
+            3'b010: begin  // BN.TRN
+`endif
+              alu_op_b_mux_sel_bignum = OpBSelRegister;
+              alu_operator_bignum     = AluOpBignumTrn;
+`ifdef BNROTV
+            end
+            3'b011, 3'b111: begin  // BN.ROTV
+              alu_operator_bignum      = AluOpBignumRotv;
+              shift_amt_mux_sel_bignum = ShamtSelBignumS;
+            end
+            default: ;
+          endcase
+`endif
         end
       end
 

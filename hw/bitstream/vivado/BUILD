@@ -162,46 +162,61 @@ filegroup(
 )
 
 # CW340 bitstream with the ACC PQC vector ISA extension enabled
-fusesoc_build(
-    name = "fpga_cw340_pqc",
-    testonly = True,
-    srcs = [
-        "//hw:rtl_files",
-        _CW340_TESTROM,
-        _OTP_RMA,
-    ],
-    cores = ["//hw:cores"],
-    data = ["//hw/ip/acc:rtl_files"],
-    flags = [
-        "--BootRomInitFile=" + _CW340_TESTROM_PATH,
-        "--OtpMacroMemInitFile=" + _OTP_RMA_PATH,
-        "--AccPQCEn=1",
-    ],
-    output_groups = {
-        "bitstream": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "lowrisc_systems_chip_egret_cw340_0.1.bit")],
-        "mmi": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "memories.mmi")],
-        "logs": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "lowrisc_systems_chip_egret_cw340_0.1.runs/")],
-    },
-    systems = ["lowrisc:systems:chip_egret_cw340"],
-    tags = ["manual"],
-    target = "synth",
-)
+MODE = {
+    "_v1": ["--flag", "bnrotv"],
+    "": [],
+}
 
-filegroup(
-    name = "fpga_cw340_pqc_test_rom",
-    testonly = True,
-    srcs = [":fpga_cw340_pqc"],
-    output_group = "bitstream",
-    tags = ["manual"],
-)
+[
+    fusesoc_build(
+        name = "fpga_cw340_pqc" + version,
+        testonly = True,
+        srcs = [
+            "//hw:rtl_files",
+            _CW340_TESTROM,
+            _OTP_RMA,
+        ],
+        cores = ["//hw:cores"],
+        data = ["//hw/ip/acc:rtl_files"],
+        flags = [
+            "--BootRomInitFile=" + _CW340_TESTROM_PATH,
+            "--OtpMacroMemInitFile=" + _OTP_RMA_PATH,
+            "--AccPQCEn=1",
+        ],
+        output_groups = {
+            "bitstream": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "lowrisc_systems_chip_egret_cw340_0.1.bit")],
+            "mmi": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "memories.mmi")],
+            "logs": [_FPGA_PATH_TMPL.format("chip_egret_cw340", "lowrisc_systems_chip_egret_cw340_0.1.runs/")],
+        },
+        pre_system_flags = flags,
+        systems = ["lowrisc:systems:chip_egret_cw340"],
+        tags = ["manual"],
+        target = "synth",
+    )
+    for version, flags in MODE.items()
+]
 
-filegroup(
-    name = "cw340_pqc_mmi",
-    testonly = True,
-    srcs = [":fpga_cw340_pqc"],
-    output_group = "mmi",
-    tags = ["manual"],
-)
+[
+    filegroup(
+        name = "fpga_cw340_pqc{}_test_rom".format(version),
+        testonly = True,
+        srcs = [":fpga_cw340_pqc" + version],
+        output_group = "bitstream",
+        tags = ["manual"],
+    )
+    for version in MODE.keys()
+]
+
+[
+    filegroup(
+        name = "cw340_pqc{}_mmi".format(version),
+        testonly = True,
+        srcs = [":fpga_cw340_pqc" + version],
+        output_group = "mmi",
+        tags = ["manual"],
+    )
+    for version in MODE.keys()
+]
 
 # Bitstream cache manifest fragment targets
 bitstream_manifest_fragment(
@@ -294,35 +309,41 @@ pkg_tar(
     tags = ["manual"],
 )
 
-bitstream_manifest_fragment(
-    name = "egret_cw340_pqc_manifest",
-    testonly = True,
-    srcs = [":fpga_cw340_pqc"],
-    bitstream = "bitstream",
-    design = "chip_egret_cw340_pqc",
-    memories = [
-        "rom",
-        "otp",
-        "flash0_info0",
-        "flash0_info1",
-        "flash0_info2",
-        "flash1_info0",
-        "flash1_info1",
-        "flash1_info2",
-    ],
-    memory_map_file = ":cw340_pqc_mmi",
-    tags = ["manual"],
-)
+[
+    bitstream_manifest_fragment(
+        name = "egret_cw340_pqc_manifest" + version,
+        testonly = True,
+        srcs = [":fpga_cw340_pqc" + version],
+        bitstream = "bitstream",
+        design = "chip_egret_cw340_pqc" + version,
+        memories = [
+            "rom",
+            "otp",
+            "flash0_info0",
+            "flash0_info1",
+            "flash0_info2",
+            "flash1_info0",
+            "flash1_info1",
+            "flash1_info2",
+        ],
+        memory_map_file = ":cw340_pqc{}_mmi".format(version),
+        tags = ["manual"],
+    )
+    for version in MODE.keys()
+]
 
-pkg_tar(
-    name = "egret_cw340_pqc_archive",
-    testonly = True,
-    srcs = [":egret_cw340_pqc_manifest"],
-    mode = "0444",
-    package_dir = "build-bin/hw/top_egret/chip_egret_cw340_pqc",
-    strip_prefix = "/hw/bitstream/vivado/egret_cw340_pqc_manifest",
-    tags = ["manual"],
-)
+[
+    pkg_tar(
+        name = "egret_cw340_pqc_archive" + version,
+        testonly = True,
+        srcs = [":egret_cw340_pqc_manifest" + version],
+        mode = "0444",
+        package_dir = "build-bin/hw/top_egret/chip_egret_cw340_pqc" + version,
+        strip_prefix = "/hw/bitstream/vivado/egret_cw340_pqc_manifest" + version,
+        tags = ["manual"],
+    )
+    for version in MODE.keys()
+]
 
 # Packaging rules for bitstreams
 pkg_files(

@@ -2198,6 +2198,24 @@ generate
     end
   endgenerate
 
+`ifdef BNROTV
+  ////////////
+  // Rotate //
+  ////////////
+  generate
+    if (AccPQCEn) begin : gen_rotv_pqc
+      logic [WLEN-1:0] rotv_res;
+
+      bnrotv_v1 u_bnrotv (
+        .A        (operation_i.operand_a),
+        .rotv_type(alu_rotv_type_t'(operation_i.vector_type)),
+        .rotv_amt (operation_i.shift_amt[6:0]),
+        .res      (rotv_res)
+      );
+    end
+  endgenerate
+`endif /* BNROTV */
+
   //////////////////
   // Adders X & Y //
   //////////////////
@@ -2581,6 +2599,11 @@ generate
           AluOpBignumTrn: begin
             expected_trn_type = operation_i.trn_type;
           end
+`ifdef BNROTV
+          AluOpBignumRotv: begin
+            expected_vector_type = operation_i.vector_type;
+          end
+`endif
           // No operation, do nothing.
           AluOpBignumNone: ;
           default: ;
@@ -2920,6 +2943,13 @@ generate
             operation_result_o = gen_trn_pqc.trn_res;
             adder_y_res_used = 1'b0;
           end
+
+`ifdef BNROTV
+          AluOpBignumRotv: begin
+            operation_result_o = gen_rotv_pqc.rotv_res;
+            adder_y_res_used = 1'b0;
+          end
+`endif
 
           AluOpBignumXor,
           AluOpBignumOr,

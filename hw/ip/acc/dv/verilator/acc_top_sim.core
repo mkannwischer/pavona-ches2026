@@ -67,6 +67,7 @@ targets:
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
+          - 'bnrotv ? (-DBNROTV=true)'
           - '-CFLAGS "-std=c++17 -DVM_TRACE_FMT_FST -DTOPLEVEL_NAME=acc_top_sim"'
           - 'pqc ? (-CFLAGS "-DPQC_EN=true")'
           - '-LDFLAGS "-pthread -lutil -lelf"'
